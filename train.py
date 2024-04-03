@@ -41,7 +41,7 @@ from .model.classification.attentive_convolution import AttentiveConvNet
 from .model.classification.region_embedding import RegionEmbedding
 from .model.classification.hmcn import HMCN
 from .model.loss import ClassificationLoss
-from .model.model_util import get_optimizer, get_hierar_relations, get_classification_model
+from .model.model_util import get_optimizer, get_hierar_relations
 
 
 def get_data_loader(dataset_name, collate_name, conf):
@@ -71,6 +71,12 @@ def get_data_loader(dataset_name, collate_name, conf):
 
     return train_data_loader, validate_data_loader, test_data_loader
 
+def get_classification_model(model_name, dataset, conf):
+    """Get classification model from configuration
+    """
+    model = globals()[model_name](dataset, conf)
+    model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
+    return model
 
 class ClassificationTrainer(object):
     def __init__(self, label_map, logger, evaluator, conf, loss_fn):

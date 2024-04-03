@@ -37,7 +37,7 @@ from model.classification.dpcnn import DPCNN
 from model.classification.attentive_convolution import AttentiveConvNet
 from model.classification.region_embedding import RegionEmbedding
 from model.classification.hmcn import HMCN
-from model.model_util import get_optimizer, get_hierar_relations, get_classification_model
+from model.model_util import get_optimizer, get_hierar_relations
 from util import ModeType
 
 def load_checkpoint(file_name, conf, model, optimizer):
@@ -46,6 +46,12 @@ def load_checkpoint(file_name, conf, model, optimizer):
     model.load_state_dict(checkpoint["state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer"])
 
+def get_classification_model(model_name, dataset, conf):
+    """Get classification model from configuration
+    """
+    model = globals()[model_name](dataset, conf)
+    model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
+    return model
 
 def eval(conf):
     logger = util.Logger(conf)
