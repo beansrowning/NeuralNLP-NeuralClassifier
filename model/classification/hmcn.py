@@ -14,11 +14,11 @@ the License.
 
 
 import torch
-from model.classification.classifier import Classifier
-from model.rnn import RNN
-from util import Type
+from neural_nlp.model.classification.classifier import Classifier
+from neural_nlp.model.rnn import RNN
+from neural_nlp.util import Type
 
-from dataset.classification_dataset import ClassificationDataset as cDataset
+from neural_nlp.dataset.classification_dataset import ClassificationDataset as cDataset
 
 class HMCN(Classifier):
     """ Implement HMCN(Hierarchical Multi-Label Classification Networks)

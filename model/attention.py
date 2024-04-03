@@ -17,7 +17,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model.model_util import init_tensor
+from .model_util import init_tensor
 
 
 class ScaledDotProductAttention(nn.Module):

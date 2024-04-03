@@ -15,8 +15,8 @@ the License.
 import codecs as cs
 import torch
 
-from util import Type
-from model.optimizer import BertAdam
+from ..util import Type
+from .optimizer import BertAdam
 
 class ActivationType(Type):
     """Standard names for activation
@@ -161,3 +161,10 @@ def get_hierar_relations(hierar_taxonomy, label_map):
                 for child_label in children_label if child_label in new_label_map]
             hierar_relations[parent_label_id] = children_label_ids
     return hierar_relations
+
+def get_classification_model(model_name, dataset, conf):
+    """Get classification model from configuration
+    """
+    model = globals()[model_name](dataset, conf)
+    model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
+    return model

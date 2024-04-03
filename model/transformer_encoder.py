@@ -23,7 +23,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model.attention import MultiHeadAttention
+from .attention import MultiHeadAttention
 
 
 class PositionwiseFeedForward(nn.Module):

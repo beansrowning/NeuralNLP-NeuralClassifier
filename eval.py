@@ -37,19 +37,8 @@ from model.classification.dpcnn import DPCNN
 from model.classification.attentive_convolution import AttentiveConvNet
 from model.classification.region_embedding import RegionEmbedding
 from model.classification.hmcn import HMCN
-from model.model_util import get_optimizer, get_hierar_relations
+from model.model_util import get_optimizer, get_hierar_relations, get_classification_model
 from util import ModeType
-
-ClassificationDataset, ClassificationCollator, FastTextCollator, cEvaluator,
-FastText, TextCNN, TextRNN, TextRCNN, DRNN, TextVDCNN, Transformer, DPCNN,
-AttentiveConvNet, RegionEmbedding
-
-
-def get_classification_model(model_name, dataset, conf):
-    model = globals()[model_name](dataset, conf)
-    model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
-    return model
-
 
 def load_checkpoint(file_name, conf, model, optimizer):
     checkpoint = torch.load(file_name)

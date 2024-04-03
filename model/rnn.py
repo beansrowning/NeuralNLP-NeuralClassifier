@@ -14,7 +14,7 @@ the License.
 
 import torch
 
-from util import Type
+from ..util import Type
 
 
 class RNNType(Type):

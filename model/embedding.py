@@ -16,12 +16,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from model.model_util import ActivationType
-from model.model_util import FAN_MODE
-from model.model_util import InitType
-from model.model_util import init_tensor
-from util import Logger
-from util import Type, ModeType
+from .model_util import (ActivationType, FAN_MODE, InitType, init_tensor)
+from ..util import Logger, Type, ModeType
 
 
 class EmbeddingType(Type):

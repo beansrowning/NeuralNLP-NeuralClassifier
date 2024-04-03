@@ -20,32 +20,28 @@ import time
 import torch
 from torch.utils.data import DataLoader
 
-import util
-from config import Config
-from dataset.classification_dataset import ClassificationDataset
-from dataset.collator import ClassificationCollator
-from dataset.collator import FastTextCollator
-from dataset.collator import ClassificationType
-from evaluate.classification_evaluate import \
+import neural_nlp.util as util
+from neural_nlp.util import ModeType
+from .config import Config
+from .dataset.classification_dataset import ClassificationDataset
+from .dataset.collator import ClassificationCollator
+from .dataset.collator import FastTextCollator
+from .dataset.collator import ClassificationType
+from .evaluate.classification_evaluate import \
     ClassificationEvaluator as cEvaluator
-from model.classification.drnn import DRNN
-from model.classification.fasttext import FastText
-from model.classification.textcnn import TextCNN
-from model.classification.textvdcnn import TextVDCNN
-from model.classification.textrnn import TextRNN
-from model.classification.textrcnn import TextRCNN
-from model.classification.transformer import Transformer
-from model.classification.dpcnn import DPCNN
-from model.classification.attentive_convolution import AttentiveConvNet
-from model.classification.region_embedding import RegionEmbedding
-from model.classification.hmcn import HMCN
-from model.loss import ClassificationLoss
-from model.model_util import get_optimizer, get_hierar_relations
-from util import ModeType
-
-
-ClassificationDataset, ClassificationCollator, FastTextCollator, ClassificationLoss, cEvaluator
-FastText, TextCNN, TextRNN, TextRCNN, DRNN, TextVDCNN, Transformer, DPCNN, AttentiveConvNet, RegionEmbedding
+from .model.classification.drnn import DRNN
+from .model.classification.fasttext import FastText
+from .model.classification.textcnn import TextCNN
+from .model.classification.textvdcnn import TextVDCNN
+from .model.classification.textrnn import TextRNN
+from .model.classification.textrcnn import TextRCNN
+from .model.classification.transformer import Transformer
+from .model.classification.dpcnn import DPCNN
+from .model.classification.attentive_convolution import AttentiveConvNet
+from .model.classification.region_embedding import RegionEmbedding
+from .model.classification.hmcn import HMCN
+from .model.loss import ClassificationLoss
+from .model.model_util import get_optimizer, get_hierar_relations, get_classification_model
 
 
 def get_data_loader(dataset_name, collate_name, conf):
@@ -74,14 +70,6 @@ def get_data_loader(dataset_name, collate_name, conf):
         pin_memory=True)
 
     return train_data_loader, validate_data_loader, test_data_loader
-
-
-def get_classification_model(model_name, dataset, conf):
-    """Get classification model from configuration
-    """
-    model = globals()[model_name](dataset, conf)
-    model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
-    return model
 
 
 class ClassificationTrainer(object):

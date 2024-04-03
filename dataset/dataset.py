@@ -17,9 +17,7 @@ import os
 
 import torch
 
-from util import Logger
-from util import ModeType
-from util import Type
+from ..util import Logger, ModeType, Type
 
 
 class InsertVocabMode(Type):
