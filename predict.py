@@ -72,7 +72,7 @@ class Predictor(object):
         input texts should be json objects
         """
         with torch.no_grad():
-            batch_texts = [self.dataset._get_vocab_id_list(json.loads(text)) for text in texts]
+            batch_texts = [self.dataset._get_vocab_id_list(text) for text in texts]
             batch_texts = self.collate_fn(batch_texts)
             logits = self.model(batch_texts)
             if self.config.task_info.label_type != ClassificationType.MULTI_LABEL:
