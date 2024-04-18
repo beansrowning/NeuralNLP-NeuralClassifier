@@ -4,5 +4,6 @@ import neural_nlp.evaluate
 
 from neural_nlp.evaluate.classification_evaluate import ClassificationEvaluator
 from neural_nlp.dataset.collator import ClassificationType
+from neural_nlp.dataset.data_preprocessor import clean_str
 from neural_nlp.predict import Predictor
 from neural_nlp.train import (get_data_loader, get_classification_model, ClassificationTrainer)
