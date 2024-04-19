@@ -128,7 +128,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         if idx >= self.sample_size:
             raise IndexError
         index = self.sample_index[idx]
-        with open(self.files[index[0]]) as fin:
+        with open(self.files[index[0]], encoding="utf-8") as fin:
             fin.seek(index[1])
             json_str = fin.readline()
         return self._get_vocab_id_list(json.loads(json_str))
