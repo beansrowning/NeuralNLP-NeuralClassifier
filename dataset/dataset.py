@@ -70,7 +70,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
 
         self.files = json_files
         for i, json_file in enumerate(json_files):
-            with open(json_file) as fin:
+            with open(json_file, encoding="utf-8") as fin:
                 self.sample_index.append([i, 0])
                 while True:
                     json_str = fin.readline()
@@ -82,7 +82,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
 
         def _insert_vocab(files, _mode=InsertVocabMode.ALL):
             for _i, _json_file in enumerate(files):
-                with open(_json_file) as _fin:
+                with open(_json_file, encoding="utf-8") as _fin:
                     for _json_str in _fin:
                         try:
                             self._insert_vocab(json.loads(_json_str), mode)
