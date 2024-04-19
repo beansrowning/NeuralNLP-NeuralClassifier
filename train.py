@@ -110,20 +110,8 @@ class ClassificationTrainer(object):
         num_batch = data_loader.__len__()
         total_loss = 0.
         for batch in data_loader:
-            # hierarchical classification using hierarchy penalty loss
-            if self.conf.task_info.hierarchical:
-                logits = model(batch)
-                linear_paras = model.linear.weight
-                is_hierar = True
-                used_argvs = (self.conf.task_info.hierar_penalty, linear_paras, self.hierar_relations)
-                loss = self.loss_fn(
-                    logits,
-                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
-                    is_hierar,
-                    is_multi,
-                    *used_argvs)
             # hierarchical classification with HMCN
-            elif self.conf.model_name == "HMCN":
+            if self.conf.model_name == "HMCN":
                 (global_logits, local_logits, logits) = model(batch)
                 loss = self.loss_fn(
                     global_logits,
@@ -135,6 +123,18 @@ class ClassificationTrainer(object):
                     batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
                     False,
                     is_multi)
+            # hierarchical classification using hierarchy penalty loss
+            elif self.conf.task_info.hierarchical:
+                logits = model(batch)
+                linear_paras = model.linear.weight
+                is_hierar = True
+                used_argvs = (self.conf.task_info.hierar_penalty, linear_paras, self.hierar_relations)
+                loss = self.loss_fn(
+                    logits,
+                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
+                    is_hierar,
+                    is_multi,
+                    *used_argvs)
             # flat classificaiton
             else:
                 logits = model(batch) 

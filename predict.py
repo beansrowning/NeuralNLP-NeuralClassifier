@@ -37,6 +37,7 @@ from neural_nlp.model.classification.transformer import Transformer
 from neural_nlp.model.classification.dpcnn import DPCNN
 from neural_nlp.model.classification.attentive_convolution import AttentiveConvNet
 from neural_nlp.model.classification.region_embedding import RegionEmbedding
+from neural_nlp.model.classification.hmcn import HMCN
 from neural_nlp.model.model_util import get_optimizer, get_hierar_relations
 
 class Predictor(object):
@@ -77,6 +78,8 @@ class Predictor(object):
             logits = self.model(batch_texts)
             if self.config.task_info.label_type != ClassificationType.MULTI_LABEL:
                 probs = torch.softmax(logits, dim=1)
+            elif self.model_name == "HMCN":
+                probs = torch.sigmoid(logits[2])
             else:
                 probs = torch.sigmoid(logits)
             probs = probs.cpu().tolist()
