@@ -188,20 +188,31 @@ def train(conf):
     dataset_name = "ClassificationDataset"
     collate_name = "FastTextCollator" if model_name == "FastText" \
         else "ClassificationCollator"
-    train_data_loader, validate_data_loader, test_data_loader = \
+    train_data_loader, validate_data_loader, _ = \
         get_data_loader(dataset_name, collate_name, conf)
     empty_dataset = AVAILABLE_DATASETS[dataset_name](conf, [], mode="train")
     model = get_classification_model(model_name, empty_dataset, conf)
     loss_fn = ClassificationLoss(
         label_size=len(empty_dataset.label_map), loss_type=conf.train.loss_type)
     optimizer = get_optimizer(conf, model)
+    if config.optimizer.lr_decay:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode = "max",
+            factor=config.optimizer.lr_decay_rate,
+            patience=config.optimizer.lr_patience,
+            verbose=True
+        )
+    else:
+        scheduler = None
+    
     evaluator = cEvaluator(conf.eval.dir)
     trainer = ClassificationTrainer(
         empty_dataset.label_map, logger, evaluator, conf, loss_fn)
 
-    best_epoch = -1
     best_performance = 0
     checkpoint_file = conf.checkpoint_dir + "/" + model_name + "_best"
+    wait = 0
 
     for epoch in range(conf.train.start_epoch,
                        conf.train.start_epoch + conf.train.num_epochs):
@@ -221,8 +232,18 @@ def train(conf):
                 'optimizer': optimizer.state_dict(),
             }, checkpoint_file)
 
+            wait = 0
+        else:
+            wait += 1
+        
+        scheduler.step(performance) if scheduler is not None else None
+
         time_used = time.time() - start_time
         logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
+
+        if wait == config.train.early_stopping:
+            logger.warn("Earn stopping triggered after {wait} epochs of no improvement")
+            break
 
 if __name__ == '__main__':
     config = Config(config_file=sys.argv[1])
