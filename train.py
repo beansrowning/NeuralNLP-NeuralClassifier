@@ -13,7 +13,6 @@ the License.
 """
 
 import os
-import shutil
 import sys
 import time
 
@@ -23,23 +22,10 @@ from torch.utils.data import DataLoader
 import neural_nlp.util as util
 from neural_nlp.util import ModeType
 from .config import Config
-from .dataset.classification_dataset import ClassificationDataset
-from .dataset.collator import ClassificationCollator
-from .dataset.collator import FastTextCollator
-from .dataset.collator import ClassificationType
+from .dataset import ClassificationType, AVAILABLE_COLLATORS, AVAILABLE_DATASETS
 from .evaluate.classification_evaluate import \
     ClassificationEvaluator as cEvaluator
-from .model.classification.drnn import DRNN
-from .model.classification.fasttext import FastText
-from .model.classification.textcnn import TextCNN
-from .model.classification.textvdcnn import TextVDCNN
-from .model.classification.textrnn import TextRNN
-from .model.classification.textrcnn import TextRCNN
-from .model.classification.transformer import Transformer
-from .model.classification.dpcnn import DPCNN
-from .model.classification.attentive_convolution import AttentiveConvNet
-from .model.classification.region_embedding import RegionEmbedding
-from .model.classification.hmcn import HMCN
+from .model import AVAILABLE_MODELS
 from .model.loss import ClassificationLoss
 from .model.model_util import get_optimizer, get_hierar_relations
 
@@ -47,23 +33,23 @@ from .model.model_util import get_optimizer, get_hierar_relations
 def get_data_loader(dataset_name, collate_name, conf):
     """Get data loader: Train, Validate, Test
     """
-    train_dataset = globals()[dataset_name](
+    train_dataset = AVAILABLE_DATASETS[dataset_name](
         conf, conf.data.train_json_files, generate_dict=True)
-    collate_fn = globals()[collate_name](conf, len(train_dataset.label_map))
+    collate_fn = AVAILABLE_COLLATORS[collate_name](conf, len(train_dataset.label_map))
 
     train_data_loader = DataLoader(
         train_dataset, batch_size=conf.train.batch_size, shuffle=True,
         num_workers=conf.data.num_worker, collate_fn=collate_fn,
         pin_memory=True)
 
-    validate_dataset = globals()[dataset_name](
+    validate_dataset = AVAILABLE_DATASETS[dataset_name](
         conf, conf.data.validate_json_files)
     validate_data_loader = DataLoader(
         validate_dataset, batch_size=conf.eval.batch_size, shuffle=False,
         num_workers=conf.data.num_worker, collate_fn=collate_fn,
         pin_memory=True)
 
-    test_dataset = globals()[dataset_name](conf, conf.data.test_json_files)
+    test_dataset = AVAILABLE_DATASETS[dataset_name](conf, conf.data.test_json_files)
     test_data_loader = DataLoader(
         test_dataset, batch_size=conf.eval.batch_size, shuffle=False,
         num_workers=conf.data.num_worker, collate_fn=collate_fn,
@@ -74,7 +60,7 @@ def get_data_loader(dataset_name, collate_name, conf):
 def get_classification_model(model_name, dataset, conf):
     """Get classification model from configuration
     """
-    model = globals()[model_name](dataset, conf)
+    model = AVAILABLE_MODELS[model_name](dataset, conf)
     model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
     return model
 
@@ -115,12 +101,12 @@ class ClassificationTrainer(object):
                 (global_logits, local_logits, logits) = model(batch)
                 loss = self.loss_fn(
                     global_logits,
-                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
+                    batch[data_loader.dataset.DOC_LABEL].to(self.conf.device),
                     False,
                     is_multi)
                 loss += self.loss_fn(
                     local_logits,
-                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
+                    batch[data_loader.dataset.DOC_LABEL].to(self.conf.device),
                     False,
                     is_multi)
             # hierarchical classification using hierarchy penalty loss
@@ -131,7 +117,7 @@ class ClassificationTrainer(object):
                 used_argvs = (self.conf.task_info.hierar_penalty, linear_paras, self.hierar_relations)
                 loss = self.loss_fn(
                     logits,
-                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
+                    batch[data_loader.dataset.DOC_LABEL].to(self.conf.device),
                     is_hierar,
                     is_multi,
                     *used_argvs)
@@ -140,7 +126,7 @@ class ClassificationTrainer(object):
                 logits = model(batch) 
                 loss = self.loss_fn(
                     logits,
-                    batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
+                    batch[data_loader.dataset.DOC_LABEL].to(self.conf.device),
                     False,
                     is_multi)
             if mode == ModeType.TRAIN:
@@ -154,7 +140,7 @@ class ClassificationTrainer(object):
             else:
                 result = torch.sigmoid(logits).cpu().tolist()
             predict_probs.extend(result)
-            standard_labels.extend(batch[ClassificationDataset.DOC_LABEL_LIST])
+            standard_labels.extend(batch[data_loader.dataset.DOC_LABEL_LIST])
         if mode == ModeType.EVAL:
             total_loss = total_loss / num_batch
             (_, precision_list, recall_list, fscore_list, right_list,
@@ -204,18 +190,19 @@ def train(conf):
         else "ClassificationCollator"
     train_data_loader, validate_data_loader, test_data_loader = \
         get_data_loader(dataset_name, collate_name, conf)
-    empty_dataset = globals()[dataset_name](conf, [], mode="train")
+    empty_dataset = AVAILABLE_DATASETS[dataset_name](conf, [], mode="train")
     model = get_classification_model(model_name, empty_dataset, conf)
-    loss_fn = globals()["ClassificationLoss"](
+    loss_fn = ClassificationLoss(
         label_size=len(empty_dataset.label_map), loss_type=conf.train.loss_type)
     optimizer = get_optimizer(conf, model)
     evaluator = cEvaluator(conf.eval.dir)
-    trainer = globals()["ClassificationTrainer"](
+    trainer = ClassificationTrainer(
         empty_dataset.label_map, logger, evaluator, conf, loss_fn)
 
     best_epoch = -1
     best_performance = 0
-    model_file_prefix = conf.checkpoint_dir + "/" + model_name
+    checkpoint_file = conf.checkpoint_dir + "/" + model_name + "_best"
+
     for epoch in range(conf.train.start_epoch,
                        conf.train.start_epoch + conf.train.num_epochs):
         start_time = time.time()
@@ -223,29 +210,19 @@ def train(conf):
         trainer.eval(train_data_loader, model, optimizer, "Train", epoch)
         performance = trainer.eval(
             validate_data_loader, model, optimizer, "Validate", epoch)
-        trainer.eval(test_data_loader, model, optimizer, "test", epoch)
+
         if performance > best_performance:  # record the best model
-            best_epoch = epoch
             best_performance = performance
-        save_checkpoint({
-            'epoch': epoch,
-            'model_name': model_name,
-            'state_dict': model.state_dict(),
-            'best_performance': best_performance,
-            'optimizer': optimizer.state_dict(),
-        }, model_file_prefix)
+            torch.save({
+                'epoch': epoch,
+                'model_name': model_name,
+                'state_dict': model.state_dict(),
+                'best_performance': best_performance,
+                'optimizer': optimizer.state_dict(),
+            }, checkpoint_file)
+
         time_used = time.time() - start_time
         logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
-
-    # best model on validateion set
-    best_epoch_file_name = model_file_prefix + "_" + str(best_epoch)
-    best_file_name = model_file_prefix + "_best"
-    shutil.copyfile(best_epoch_file_name, best_file_name)
-
-    load_checkpoint(model_file_prefix + "_" + str(best_epoch), conf, model,
-                    optimizer)
-    trainer.eval(test_data_loader, model, optimizer, "Best test", best_epoch)
-
 
 if __name__ == '__main__':
     config = Config(config_file=sys.argv[1])
