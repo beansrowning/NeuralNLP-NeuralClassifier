@@ -242,7 +242,7 @@ def train(conf):
         logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
 
         if wait == conf.train.early_stopping:
-            logger.warn(f"Earn stopping triggered after {wait} epochs of no improvement")
+            logger.warn(f"Early stopping triggered after {wait} epochs of no improvement")
             break
 
 if __name__ == '__main__':
