@@ -195,12 +195,12 @@ def train(conf):
     loss_fn = ClassificationLoss(
         label_size=len(empty_dataset.label_map), loss_type=conf.train.loss_type)
     optimizer = get_optimizer(conf, model)
-    if config.optimizer.lr_decay:
+    if conf.optimizer.lr_decay:
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             mode = "max",
-            factor=config.optimizer.lr_decay_rate,
-            patience=config.optimizer.lr_patience,
+            factor=conf.optimizer.lr_decay_rate,
+            patience=conf.optimizer.lr_patience,
             verbose=True
         )
     else:
@@ -237,11 +237,11 @@ def train(conf):
             wait += 1
         
         scheduler.step(performance) if scheduler is not None else None
-
+        scheduler.get_last_lr()
         time_used = time.time() - start_time
         logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
 
-        if wait == config.train.early_stopping:
+        if wait == conf.train.early_stopping:
             logger.warn("Earn stopping triggered after {wait} epochs of no improvement")
             break
 
