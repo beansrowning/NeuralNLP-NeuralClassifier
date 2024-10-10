@@ -254,7 +254,6 @@ class ClassificationEvaluator(object):
                 _init_count_dict(label_to_id_maps[i]))
 
         line_count = 0
-        debug_file = open("probs.txt", "w", encoding=cDataset.CHARSET)
         for predict in predicts:
             if is_prob:
                 prob_np = np.array(predict, dtype=np.float32)
@@ -269,8 +268,6 @@ class ClassificationEvaluator(object):
 
                 predict_label_name = [id_to_label_maps[0][predict_label_id] \
                     for predict_label_id in predict_label_ids]
-                debug_file.write(json.dumps(prob_np.tolist()))
-                debug_file.write("\n")
             else:
                 predict_label_name = predict
 
