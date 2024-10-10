@@ -236,8 +236,13 @@ def train(conf):
         else:
             wait += 1
         
-        scheduler.step(performance) if scheduler is not None else None
-        scheduler.get_last_lr()
+        if scheduler is not None:
+            old_rate = scheduler.get_last_lr()
+            scheduler.step(performance)
+            new_rate = scheduler.get_last_lr()
+            if old_rate != new_rate:
+                logger.info(f"Epoch {epoch}: adjusting LR {old_rate:.4e} -> {new_rate:.4e}")
+
         time_used = time.time() - start_time
         logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
 
