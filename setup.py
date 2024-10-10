@@ -8,7 +8,7 @@ with open("README.md", encoding="utf-8") as readme_file:
 
 setup(
     name='NeuralNLP',
-    version='0.1.20241010-1',
+    version='0.1.20241010-2',
     description='A packaged version of the NeuralNLP Neural Classifier repo',
     long_description=readme,
     long_description_content_type="text/markdown",

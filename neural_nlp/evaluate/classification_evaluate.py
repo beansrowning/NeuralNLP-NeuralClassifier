@@ -324,7 +324,6 @@ class ClassificationEvaluator(object):
                                     right_category_count_list[level][pred_label] += 1
 
             line_count += 1
-        debug_file.close()
         precision_list = []
         recall_list = []
         fscore_list = []
