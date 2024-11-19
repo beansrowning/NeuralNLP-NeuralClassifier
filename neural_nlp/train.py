@@ -179,7 +179,7 @@ def save_checkpoint(state, file_prefix):
     torch.save(state, file_name)
 
 
-def train(conf):
+def train(conf) -> float:
     logger = util.Logger(conf)
     if not os.path.exists(conf.checkpoint_dir):
         os.makedirs(conf.checkpoint_dir)
@@ -249,6 +249,8 @@ def train(conf):
         if wait == conf.train.early_stopping:
             logger.warn(f"Early stopping triggered after {wait} epochs of no improvement")
             break
+
+    return best_performance
 
 if __name__ == '__main__':
     config = Config(config_file=sys.argv[1])
