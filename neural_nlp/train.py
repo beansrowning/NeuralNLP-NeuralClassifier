@@ -15,19 +15,22 @@ the License.
 import os
 import sys
 import time
+from typing import Tuple
 
 import torch
 from torch.utils.data import DataLoader
 
 import neural_nlp.util as util
 from neural_nlp.util import ModeType
+
 from .config import Config
-from .dataset import ClassificationType, AVAILABLE_COLLATORS, AVAILABLE_DATASETS
+from .dataset import (AVAILABLE_COLLATORS, AVAILABLE_DATASETS,
+                      ClassificationType)
 from .evaluate.classification_evaluate import \
     ClassificationEvaluator as cEvaluator
 from .model import AVAILABLE_MODELS
 from .model.loss import ClassificationLoss
-from .model.model_util import get_optimizer, get_hierar_relations
+from .model.model_util import get_hierar_relations, get_optimizer
 
 
 def get_data_loader(dataset_name, collate_name, conf):
@@ -179,7 +182,7 @@ def save_checkpoint(state, file_prefix):
     torch.save(state, file_name)
 
 
-def train(conf) -> float:
+def train(conf) -> Tuple[float, int]:
     logger = util.Logger(conf)
     if not os.path.exists(conf.checkpoint_dir):
         os.makedirs(conf.checkpoint_dir)
