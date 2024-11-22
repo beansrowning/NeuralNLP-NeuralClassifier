@@ -250,7 +250,7 @@ def train(conf) -> float:
             logger.warn(f"Early stopping triggered after {wait} epochs of no improvement")
             break
 
-    return best_performance
+    return best_performance, epoch
 
 if __name__ == '__main__':
     config = Config(config_file=sys.argv[1])
